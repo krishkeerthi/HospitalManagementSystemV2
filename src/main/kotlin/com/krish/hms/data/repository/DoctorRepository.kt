@@ -1,16 +1,44 @@
+
 package com.krish.hms.data.repository
 
-import com.krish.hms.helper.generateId
-import com.krish.hms.helper.getToday
+import com.krish.hms.helper.*
 import com.krish.hms.model.*
-import java.time.LocalDate
-import java.time.LocalTime
-import java.util.*
+import com.krish.hms.ui.UIHandler
 
-class DoctorRepository {
+class DoctorRepository(val uiHandler: UIHandler) {
     private val doctors = mutableMapOf<String, Doctor>()
-    private val doctorsConsultations = mutableMapOf<String, MutableList<String>>() // <doctorId, ListOf<consultationId>> doctor's history of cases
-    val doctorsPendingConsultations = mutableMapOf<String, Queue<String>>() // <doctorId, ListOf(consultationId)> doctor's current or pending consultations
+
+    init {
+        val doctorFile = readFile("Doctors")
+        for(line in doctorFile){
+            val doctor = Doctor(line.split('|'))
+            doctors[doctor.doctorId] = doctor
+        }
+    }
+
+    fun readDoctor(ssn: Int): Doctor {
+        val name = uiHandler.readData("Name")
+        val age = uiHandler.readData("Age").toInt()
+        val gender = getGender(uiHandler.readOptions(Gender.values()))
+        val dob = uiHandler.readData("Date of Birth(dd-mm-yyyy)").getDate() ?: getToday().
+        also { uiHandler.writeData("Invalid Date entered, so Today's date is assigned", LogLevel.ERROR)}
+
+        val address = uiHandler.readData("Address")
+        val contact = uiHandler.readData("Contact Number")
+        val bloodGroup = getBloodGroup(uiHandler.readOptions(BloodGroup.values()))
+        val doctorId = generateId(IdHolder.DOCTOR)
+        val department = getDepartment(uiHandler.readOptions(Department.values()))
+        val experience = uiHandler.readData("years of experience").toInt()
+
+        val startTime = uiHandler.readTime("start") ?: getDefaultTime().
+        also { uiHandler.writeData("Invalid time entered, so default time(12:00pm) is assigned", LogLevel.ERROR) }
+
+        val endTime = uiHandler.readTime("end") ?: getDefaultTime().
+        also { uiHandler.writeData("Invalid time entered, so default time(12:00pm) is assigned", LogLevel.ERROR) }
+
+        return Doctor(name, age, gender, dob, address, contact, bloodGroup,
+            ssn, doctorId, department, experience, startTime, endTime)
+    }
 
     fun addDoctor(doctor: Doctor){
 
@@ -27,24 +55,33 @@ class DoctorRepository {
         return doctors.values.filter { it.department == department }
     }
 
-    fun getPendingConsultations(doctorId: String): Int{
-        return doctorsPendingConsultations[doctorId]?.size ?: 0
+    fun getListOfDoctors(doctorSelection: DoctorSelection): List<Doctor>? {
+        return when (doctorSelection) {
+            DoctorSelection.ALL -> getAllDoctors()
+
+            DoctorSelection.ID -> {
+                val doctorId = uiHandler.readData("doctor id")
+                getDoctorById(doctorId)
+            }
+
+            DoctorSelection.DEPARTMENT -> {
+                val department = getDepartment(uiHandler.readOptions(Department.values()))
+                getDoctorsByDepartment(department)
+            }
+        }
     }
 
-    fun manageConsultationsAndDoctors(doctorId: String, issue: String, caseId: String, department: Department, ssn: Int){
-        //Create consultation
-        val consultationId = generateId(IdHolder.CONSULTATION)
-        consultations[consultationId] = Consultation(consultationId, caseId, doctorId, issue, department, getToday(), "")
-
-        //Update case last visit date
-        cases[caseId]!!.lastVisit = getToday()
-
-        //Update patient last visit date
-        val patientId = getPatientId(ssn)
-        patients[patientId]!!.lastRegistered = getToday()
-
-        addOrCreate(doctorsConsultations, doctorId, consultationId)
-        addOrCreateQueue(doctorsPendingConsultations, doctorId, consultationId)
-        addOrCreate(casesConsultations, caseId, consultationId)
+    fun getDoctorById(id: String): List<Doctor>? {
+        val doctor = doctors.values.find { it.doctorId == id }
+        return if(doctor != null)
+            listOf(doctor)
+        else null
     }
+
+    fun getDoctorsByDepartment(department: Department): List<Doctor>{
+        return doctors.values.filter { it.department == department}
+    }
+
+    fun getAllDoctors() = doctors.values.distinct()
+
 }

@@ -1,3 +1,4 @@
+
 package com.krish.hms.ui
 
 import com.krish.hms.helper.getModule
@@ -6,9 +7,9 @@ import com.krish.hms.model.Modules
 class Activity(val viewModel: ViewModel, val uiHandler: UIHandler) {
 
     fun launch(){
-        uiHandler.welcomeMessage()
+        uiHandler.writeData("Welcome to Hospital Management System")
         while(true){
-            when(getModule(uiHandler.readModules())){
+            when(getModule(uiHandler.readOptions(Modules.values()))){
                 Modules.ADDDOCTOR -> viewModel.addDoctor()
 
                 Modules.ADDPATIENT -> viewModel.addPatient()
@@ -24,6 +25,6 @@ class Activity(val viewModel: ViewModel, val uiHandler: UIHandler) {
                 Modules.EXIT -> break
             }
         }
-        uiHandler.thankYouMessage()
+        uiHandler.writeData("Thank you")
     }
 }

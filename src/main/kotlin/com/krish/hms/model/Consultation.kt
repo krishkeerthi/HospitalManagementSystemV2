@@ -1,7 +1,9 @@
 
 package com.krish.hms.model
 
+import com.krish.hms.helper.generateId
 import com.krish.hms.helper.getDepartment
+import com.krish.hms.helper.getToday
 import com.krish.hms.helper.toInt
 import java.time.LocalDate
 
@@ -12,7 +14,7 @@ data class Consultation(
     val issue: String,
     val department: Department,
     val visitDate: LocalDate,
-    var assessment: String
+    var assessment: String =""
 ) {
 
     constructor(fields: List<String>):
@@ -27,5 +29,16 @@ data class Consultation(
 
     override fun toString(): String {
         return "$consultationId|$caseId|$doctorId|$issue|${department.ordinal}|$visitDate|$assessment\n"
+    }
+
+    companion object{
+        fun createConsultation(
+            caseId: String,
+            doctorId: String,
+            issue: String,
+            department: Department
+        ): Consultation{
+            return Consultation(generateId(IdHolder.CONSULTATION), caseId, doctorId, issue, department, getToday())
+        }
     }
 }

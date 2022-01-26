@@ -55,3 +55,21 @@ enum class Meridian{
     AM,
     PM,
 }
+
+enum class DoctorSelection{
+    ALL,
+    ID,
+    DEPARTMENT,
+}
+
+enum class PatientSelection{
+    ALL,
+    ID,
+    NAME,
+}
+
+enum class LogLevel{
+    INFO,
+    ERROR,
+    WARNING,
+}

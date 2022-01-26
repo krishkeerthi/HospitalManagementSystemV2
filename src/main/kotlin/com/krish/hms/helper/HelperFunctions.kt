@@ -2,6 +2,7 @@
 package com.krish.hms.helper
 
 import com.krish.hms.model.*
+import java.io.File
 import java.time.DateTimeException
 import java.time.LocalDate
 import java.time.LocalTime
@@ -85,27 +86,9 @@ fun getMedicineType(value: Int) : MedicineType{
     }
 }
 
-fun enterField(field: String) : String{
-    println("Enter $field:")
-    val input = readLine() ?: ""
-    return if(input == "")
-        "Undefined"
-    else
-        input
-}
-
-fun enterTime(field: String): LocalTime? {
-    val hour = enterField("$field hour").toInt()
-    val minutes = enterField("$field minutes").toInt()
-    val meridian = getMeridian(enterField("1. AM 2. PM").toInt().minus(1))
-    return getTime(hour, minutes, meridian)
-}
-
 fun isYes(value: String): Boolean = value.lowercase().replace(" ", "") == "yes"
 
 fun getToday(): LocalDate = LocalDate.now()
-
-fun readOption() = readLine()?.toIntOrNull() ?: 0
 
 fun generateId(holder: IdHolder): String{
     val prefix = when(holder){
@@ -149,6 +132,34 @@ fun getModule(value: Int): Modules{
         5 -> Modules.LISTCASES
         else -> Modules.EXIT
     }
+}
+
+fun getDoctorSelection(value: Int) : DoctorSelection{
+    return when(value){
+        0 -> DoctorSelection.ALL
+        1 -> DoctorSelection.ID
+        2 -> DoctorSelection.DEPARTMENT
+        else -> DoctorSelection.ALL
+    }
+}
+
+fun getPatientSelection(value: Int) : PatientSelection{
+    return when(value){
+        0 -> PatientSelection.ALL
+        1 -> PatientSelection.ID
+        2 -> PatientSelection.NAME
+        else ->PatientSelection.ALL
+    }
+}
+
+fun readFile(fileName: String) : List<String>{
+    val file = "src/main/kotlin/com/krish/hms/data/$fileName"
+    return File(file).readLines().drop(1)
+}
+
+fun writeFile(fileName: String, line: String){
+    val file = "src/main/kotlin/com/krish/hms/data/$fileName"
+    File(file).appendText(line)
 }
 
 
